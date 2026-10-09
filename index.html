@@ -141,9 +141,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   <section class="login" id="login" hidden>
     <h2>Accedi alla lista</h2>
-    <p>Inserisci la tua email: ti arriva un codice per entrare.</p>
-    <form id="loginForm"><input id="loginEmail" type="email" placeholder="nome@esempio.it" autocomplete="email" required><button class="btn">Invia codice</button></form>
-    <form id="codeForm" hidden><input id="loginCode" inputmode="numeric" autocomplete="one-time-code" placeholder="Codice dall'email"><button class="btn">Entra</button></form>
+    <p>Entra con l'email e la password che ti ha dato chi ha creato la lista.</p>
+    <form id="loginForm" style="flex-direction:column">
+      <input id="loginEmail" type="email" placeholder="nome@esempio.it" autocomplete="username" required aria-label="Email">
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password" required aria-label="Password">
+      <button class="btn">Entra</button>
+    </form>
     <p id="loginMsg"></p>
     <button class="btn ghost small" id="logoutLogin" hidden>Usa un'altra email</button>
   </section>
@@ -313,22 +316,11 @@ function showScreen(name){
   $("#app").hidden = name!=="app";
   $("#fab").hidden = name!=="app" || tab!=="scatole";
 }
-let loginEmail = "";
 $("#loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  loginEmail = $("#loginEmail").value.trim();
-  if(!loginEmail) return;
-  $("#loginMsg").textContent = "Invio in corso…";
-  const { error } = await sb.auth.signInWithOtp({ email: loginEmail, options:{ emailRedirectTo: location.origin + location.pathname } });
-  if(error){ $("#loginMsg").textContent = "Invio non riuscito: " + error.message; return; }
-  $("#loginMsg").textContent = "Ti abbiamo mandato un'email. Inserisci il codice qui sotto, oppure tocca il link nell'email.";
-  $("#codeForm").hidden = false; $("#loginCode").focus();
-});
-$("#codeForm").addEventListener("submit", async e=>{
-  e.preventDefault();
-  const token = $("#loginCode").value.replace(/\s/g,"");
-  const { error } = await sb.auth.verifyOtp({ email: loginEmail, token, type:"email" });
-  if(error) $("#loginMsg").textContent = "Codice non valido o scaduto. Richiedine uno nuovo.";
+  $("#loginMsg").textContent = "Accesso in corso…";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#loginEmail").value.trim(), password: $("#loginPass").value });
+  $("#loginMsg").textContent = error ? "Email o password non corrette." : "";
 });
 $("#logout").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
 
@@ -343,7 +335,6 @@ async function start(session){
   if(!me){
     showScreen("login");
     $("#loginMsg").innerHTML = `L'indirizzo <b>${esc(email)}</b> non è tra i membri di questa lista. Chiedi a chi l'ha creata di aggiungerlo, poi riprova.`;
-    $("#codeForm").hidden = true;
     $("#logoutLogin").hidden = false;
     return;
   }
