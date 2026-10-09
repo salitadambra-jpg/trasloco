@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9ECEF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Trasloco</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9ECEF; --surface:#FFFFFF; --ink:#1D232C; --muted:#5E6875; --line:#CDD3DA;
+  --kraft:#C99E6B; --kraft-dark:#A97F4E; --marker:#16181B; --tape:#2D6BD6; --red:#C3352B; --amber:#B7791F; --ok:#2E7D4F;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hand:"Permanent Marker", "Marker Felt", "Comic Sans MS", cursive;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15181C; --surface:#1F242A; --ink:#E7EAEE; --muted:#9AA4B0; --line:#343B44;
+    --kraft:#B48A58; --kraft-dark:#93703F; --marker:#121314; --tape:#6E9CF0; --red:#E2685E; --amber:#E0A84A; --ok:#5DBB86;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15181C; --surface:#1F242A; --ink:#E7EAEE; --muted:#9AA4B0; --line:#343B44;
+  --kraft:#B48A58; --kraft-dark:#93703F; --marker:#121314; --tape:#6E9CF0; --red:#E2685E; --amber:#E0A84A; --ok:#5DBB86;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--tape);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 96px}
+
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 0 14px}
+header.top h1{font-family:var(--hand);font-weight:400;font-size:2rem;margin:0;letter-spacing:.5px}
+.sync{font-size:.85rem;color:var(--muted)}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;background:var(--bg);padding:6px 0 10px}
+nav.tabs button{flex:1;border:1px solid var(--line);background:var(--surface);padding:10px 6px;border-radius:10px;font-weight:700}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.search{display:flex;gap:8px;margin:4px 0 14px}
+.search input{flex:1;padding:14px 14px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:1.05rem}
+.search input:focus{border-color:var(--tape);outline:none}
+.btn{border:none;border-radius:12px;padding:12px 16px;font-weight:700;background:var(--tape);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
+.btn.small{padding:7px 11px;font-size:.9rem;border-radius:9px}
+
+.stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.92rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip b{font-family:var(--hand);font-weight:400;margin-right:4px}
+
+/* the box tag: the one loud element */
+.box{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px}
+.tag{position:relative;background:var(--kraft);color:var(--marker);font-family:var(--hand);font-size:1.7rem;line-height:1;padding:16px 12px 12px;border-radius:3px;min-width:96px;text-align:center;box-shadow:inset 0 -3px 0 var(--kraft-dark)}
+.tag::before{content:"";position:absolute;top:-6px;left:50%;width:46px;height:14px;transform:translateX(-50%) rotate(-3deg);background:color-mix(in srgb,var(--tape) 55%,transparent)}
+.tag small{display:block;font-family:var(--body);font-size:.7rem;font-weight:700;margin-top:6px;opacity:.8}
+.box h3{margin:0 0 2px;font-size:1rem}
+.box p.contents{margin:0 0 8px;white-space:pre-wrap;word-break:break-word}
+.flags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.flag{font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:6px;border:1.5px solid currentColor}
+.flag.f{color:var(--red)} .flag.p{color:var(--amber)}
+.boxrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.boxrow select{padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.9rem}
+.st-svuotata{opacity:.55}
+mark{background:color-mix(in srgb,var(--amber) 35%,transparent);color:inherit;border-radius:3px}
+
+.empty{text-align:center;color:var(--muted);padding:36px 12px}
+.empty .tag{display:inline-block;margin-bottom:14px;transform:rotate(-2deg)}
+
+/* checklists */
+.phase{margin-bottom:22px}
+.phase h2{font-size:1.05rem;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.phase h2 span{font-weight:400;color:var(--muted);font-size:.9rem}
+ul.chk{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+ul.chk li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+ul.chk li:first-child{border-top:none}
+ul.chk label{flex:1;display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+ul.chk input[type=checkbox]{width:22px;height:22px;accent-color:var(--ok);flex:none;margin-top:1px}
+ul.chk li.done label span{text-decoration:line-through;color:var(--muted)}
+.x{background:none;border:none;color:var(--muted);font-size:1.2rem;padding:2px 6px;line-height:1}
+.addline{display:flex;gap:8px;margin-top:8px}
+.addline input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+
+/* sheet */
+dialog{border:none;border-radius:16px;padding:0;width:min(560px,94vw);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.sheet{padding:18px}
+.sheet h2{margin:0 0 4px;font-size:1.2rem}
+.preview{display:flex;align-items:center;gap:14px;margin:12px 0 16px}
+.preview p{margin:0;color:var(--muted);font-size:.92rem}
+.field{margin-bottom:14px}
+.field>label,.field>.lbl{display:block;font-weight:700;margin-bottom:6px}
+.field textarea,.field input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.rooms{display:flex;flex-wrap:wrap;gap:6px}
+.toggles{display:flex;flex-wrap:wrap;gap:16px}
+.toggles label{display:flex;gap:8px;align-items:center}
+.toggles input{width:20px;height:20px}
+.actions{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
+.actions div{display:flex;gap:8px}
+.hint{font-size:.85rem;color:var(--muted);margin:4px 0 0}
+
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:6;border:none;border-radius:16px;padding:16px 20px;font-weight:700;background:var(--ink);color:var(--bg);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:no-preference){ .box.new{animation:drop .35s ease-out} @keyframes drop{from{transform:translateY(-8px);opacity:0}} }
+
+.photos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.photos button{padding:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;width:64px;height:64px;background:var(--bg)}
+.photos img{width:100%;height:100%;object-fit:cover;display:block}
+.ph-edit{position:relative}
+.ph-edit .x{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;border-radius:50%;width:24px;height:24px;font-size:1rem;padding:0}
+.ph-wait{width:64px;height:64px;border:1px dashed var(--line);border-radius:6px;display:grid;place-items:center;font-size:.75rem;color:var(--muted)}
+.toolbar{display:flex;justify-content:flex-end;gap:8px;margin:-4px 0 12px}
+#lb{width:min(900px,96vw)}
+#lb img{display:block;width:100%;max-height:75vh;object-fit:contain;background:#000}
+#lb .actions{padding:12px}
+.err{color:var(--red);font-size:.9rem}
+
+.login{max-width:420px;margin:8vh auto 0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.login h2{margin:0 0 6px;font-size:1.2rem}
+.login p{color:var(--muted);margin:0 0 14px}
+.login form{display:flex;gap:8px;margin-bottom:10px}
+.login input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+#loginMsg{color:var(--ink)}
+.who{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Trasloco</h1>
+    <span class="sync" id="sync"></span>
+  </header>
+
+  <section class="login" id="login" hidden>
+    <h2>Accedi alla lista</h2>
+    <p>Inserisci la tua email: ti arriva un codice per entrare.</p>
+    <form id="loginForm"><input id="loginEmail" type="email" placeholder="nome@esempio.it" autocomplete="email" required><button class="btn">Invia codice</button></form>
+    <form id="codeForm" hidden><input id="loginCode" inputmode="numeric" autocomplete="one-time-code" placeholder="Codice dall'email"><button class="btn">Entra</button></form>
+    <p id="loginMsg"></p>
+    <button class="btn ghost small" id="logoutLogin" hidden>Usa un'altra email</button>
+  </section>
+
+  <div id="app" hidden>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="scatole" aria-selected="true">Scatole</button>
+      <button role="tab" data-tab="checklist" aria-selected="false">Checklist</button>
+      <button role="tab" data-tab="zaino" aria-selected="false">Zaino 1ª notte</button>
+    </nav>
+
+    <section id="tab-scatole">
+      <div class="search">
+        <input id="q" type="search" placeholder="Cerca un oggetto o un codice (es. forbici, CU-07)" autocomplete="off">
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="toolbar"><button class="btn ghost small" id="dlList" hidden>Scarica elenco</button></div>
+      <div id="boxes"></div>
+    </section>
+    <section id="tab-checklist" hidden></section>
+    <section id="tab-zaino" hidden></section>
+
+    <p class="who"><span id="who"></span><button class="btn ghost small" id="logout">Esci</button></p>
+  </div>
+</div>
+
+<button class="fab" id="fab" hidden>+ Nuova scatola</button>
+
+<dialog id="dlg">
+  <form class="sheet" method="dialog" id="boxform">
+    <h2 id="dlgTitle">Nuova scatola</h2>
+    <div class="preview">
+      <div class="tag" id="pvTag">CU-01</div>
+      <p>Scrivi questo codice col pennarello su due lati e sopra.</p>
+    </div>
+    <div class="field">
+      <span class="lbl">Stanza di destinazione</span>
+      <div class="rooms" id="roomPick"></div>
+      <p class="hint"><button type="button" class="btn ghost small" id="addRoomBtn">+ Aggiungi stanza</button></p>
+    </div>
+    <div class="field">
+      <label for="fContents">Cosa contiene</label>
+      <textarea id="fContents" rows="4" placeholder="Pentole, mestolo, forbici, tovaglie…"></textarea>
+    </div>
+    <div class="field">
+      <span class="lbl">Foto del contenuto</span>
+      <div class="photos" id="dlgPhotos"></div>
+      <label class="btn ghost small" style="display:inline-block">+ Aggiungi foto<input type="file" accept="image/*" multiple id="dlgFile" hidden></label>
+    </div>
+    <div class="field toggles">
+      <label><input type="checkbox" id="fFragile"> Fragile</label>
+      <label><input type="checkbox" id="fPriority"> Apri subito</label>
+    </div>
+    <p class="err" id="photoErr"></p>
+    <div class="actions">
+      <div><button type="button" class="btn danger" id="delBtn" hidden>Elimina</button></div>
+      <div>
+        <button type="button" class="btn ghost" id="cancelBtn">Annulla</button>
+        <button type="submit" class="btn" id="saveBtn">Salva scatola</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="lb">
+  <img id="lbImg" alt="">
+  <div class="actions">
+    <div><span id="lbCap"></span></div>
+    <div><button class="btn ghost" id="lbDl">Scarica foto</button><button class="btn" id="lbClose">Chiudi</button></div>
+  </div>
+</dialog>
+<input type="file" accept="image/*" multiple id="cardFile" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* =====================================================
+   CONFIGURAZIONE: incolla qui i dati del tuo progetto
+   (Supabase > Project Settings > API)
+   ===================================================== */
+const SUPABASE_URL = "https://TUO-PROGETTO.supabase.co";
+const SUPABASE_ANON_KEY = "INCOLLA-QUI-LA-ANON-PUBLIC-KEY";
+/* ===================================================== */
+
+(function(){
+const DEFAULT_ROOMS = [
+  {code:"CU", name:"Cucina"},{code:"SO", name:"Soggiorno"},{code:"CA", name:"Camera"},
+  {code:"BI", name:"Cameretta bimbo"},{code:"GI", name:"Giocattoli"},{code:"BA", name:"Bagno"},
+  {code:"ST", name:"Studio"},{code:"RI", name:"Ripostiglio"},{code:"AL", name:"Altro"}
+];
+const PHASES = [
+  {id:"m1", name:"Un mese prima"},{id:"w1", name:"Una settimana prima"},
+  {id:"d0", name:"Il giorno del trasloco"},{id:"dopo", name:"Dopo il trasloco"}
+];
+const DEFAULT_CHECKS = [
+  ["m1","Fissare la data e prenotare ditta o furgone"],
+  ["m1","Chiedere aiuto ad amici e parenti per il giorno"],
+  ["m1","Richiedere il trasloco della linea internet"],
+  ["m1","Procurarsi scatoloni, nastro, pennarelli e pluriball"],
+  ["m1","Fare selezione: buttare, regalare o vendere"],
+  ["m1","Avvisare scuola o asilo del bambino del cambio indirizzo"],
+  ["w1","Richiedere voltura o subentro di luce e gas"],
+  ["w1","Richiedere voltura dell'acqua"],
+  ["w1","Organizzare chi tiene il bambino il giorno del trasloco"],
+  ["w1","Inscatolare tutto ciò che non serve fino al trasloco"],
+  ["w1","Preparare lo zaino della prima notte"],
+  ["w1","Svuotare e sbrinare il frigorifero"],
+  ["d0","Fotografare e annotare i contatori della casa vecchia"],
+  ["d0","Fotografare e annotare i contatori della casa nuova"],
+  ["d0","Controllare stanze, armadi e cantina prima di uscire"],
+  ["d0","Consegnare o ritirare le chiavi"],
+  ["d0","Montare per primo il letto del bambino"],
+  ["dopo","Richiedere il cambio di residenza in Comune"],
+  ["dopo","Aggiornare l'indirizzo con banca, assicurazioni e abbonamenti"],
+  ["dopo","Verificare il pediatra (va cambiato se cambia la ASL)"],
+  ["dopo","Aggiornare l'indirizzo per la TARI"],
+  ["dopo","Attivare il servizio di inoltro posta se serve"]
+];
+const DEFAULT_KIT = [
+  "Documenti, chiavi e contratti","Caricabatterie e powerbank","Medicine abituali",
+  "Lenzuola e cuscini per stanotte","Asciugamani e beauty case","Cambio vestiti per due giorni",
+  "Pigiama e cambio per il bimbo","Peluche o gioco preferito del bimbo","Snack, acqua e piatti usa e getta",
+  "Carta igienica e sapone","Cacciavite, metro, taglierino, nastro","Lampadina e torcia"
+];
+const STATUS = [["prep","In preparazione"],["chiusa","Chiusa"],["arrivata","Arrivata"],["svuotata","Svuotata"]];
+const BUCKET = "foto";
+
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));
+const shortId = () => Math.random().toString(36).slice(2,10);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+function defaultConfig(){
+  return {
+    rooms: DEFAULT_ROOMS.slice(),
+    checks: DEFAULT_CHECKS.map(([phase,text])=>({id:shortId(),phase,text,done:false})),
+    kit: DEFAULT_KIT.map(text=>({id:shortId(),text,done:false}))
+  };
+}
+
+/* ---------- client ---------- */
+if(SUPABASE_URL.includes("TUO-PROGETTO")){
+  document.body.innerHTML = '<div class="wrap"><h1 style="font-family:var(--hand)">Trasloco</h1><p>Manca la configurazione: apri <b>index.html</b> e inserisci <b>SUPABASE_URL</b> e <b>SUPABASE_ANON_KEY</b> in cima allo script.</p></div>';
+  return;
+}
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let config = defaultConfig(), configExists = false;
+let boxes = [];
+let started = false, channel = null;
+
+function setSync(t){ $("#sync").textContent = t; }
+let inflight = 0;
+async function track(promise){
+  inflight++; setSync("Salvataggio…");
+  try{
+    const r = await promise;
+    if(r && r.error) throw r.error;
+    inflight--; if(!inflight) setSync("Salvato");
+    return r;
+  }catch(e){ inflight--; setSync("Non salvato: controlla la connessione"); throw e; }
+}
+
+/* ---------- login ---------- */
+function showScreen(name){
+  $("#login").hidden = name!=="login";
+  $("#app").hidden = name!=="app";
+  $("#fab").hidden = name!=="app" || tab!=="scatole";
+}
+let loginEmail = "";
+$("#loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  loginEmail = $("#loginEmail").value.trim();
+  if(!loginEmail) return;
+  $("#loginMsg").textContent = "Invio in corso…";
+  const { error } = await sb.auth.signInWithOtp({ email: loginEmail, options:{ emailRedirectTo: location.origin + location.pathname } });
+  if(error){ $("#loginMsg").textContent = "Invio non riuscito: " + error.message; return; }
+  $("#loginMsg").textContent = "Ti abbiamo mandato un'email. Inserisci il codice qui sotto, oppure tocca il link nell'email.";
+  $("#codeForm").hidden = false; $("#loginCode").focus();
+});
+$("#codeForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const token = $("#loginCode").value.replace(/\s/g,"");
+  const { error } = await sb.auth.verifyOtp({ email: loginEmail, token, type:"email" });
+  if(error) $("#loginMsg").textContent = "Codice non valido o scaduto. Richiedine uno nuovo.";
+});
+$("#logout").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+
+sb.auth.onAuthStateChange((_ev, session)=>{
+  if(session && !started){ started = true; start(session); }
+  if(!session){ started = false; showScreen("login"); }
+});
+
+async function start(session){
+  const email = session.user.email;
+  const { data: me } = await sb.from("membri").select("email").maybeSingle();
+  if(!me){
+    showScreen("login");
+    $("#loginMsg").innerHTML = `L'indirizzo <b>${esc(email)}</b> non è tra i membri di questa lista. Chiedi a chi l'ha creata di aggiungerlo, poi riprova.`;
+    $("#codeForm").hidden = true;
+    $("#logoutLogin").hidden = false;
+    return;
+  }
+  $("#who").textContent = email;
+  showScreen("app");
+  setSync("Caricamento…");
+  await loadAll();
+  subscribe();
+  setSync("Salvato");
+}
+$("#logoutLogin").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+
+async function loadAll(){
+  const [c, s] = await Promise.all([
+    sb.from("config").select("data").eq("id",1).maybeSingle(),
+    sb.from("scatole").select("*")
+  ]);
+  if(c.data && c.data.data){ config = c.data.data; configExists = true; }
+  if(s.data) boxes = s.data;
+  render();
+}
+function subscribe(){
+  if(channel) sb.removeChannel(channel);
+  channel = sb.channel("trasloco")
+    .on("postgres_changes",{event:"*",schema:"public",table:"scatole"}, p=>{
+      if(p.eventType==="DELETE"){ boxes = boxes.filter(b=>b.id!==p.old.id); }
+      else {
+        const i = boxes.findIndex(b=>b.id===p.new.id);
+        if(i>=0) boxes[i] = p.new; else boxes.push(p.new);
+      }
+      render();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"config"}, p=>{
+      if(cfgDirty || cfgWriting || !p.new || !p.new.data) return;
+      config = p.new.data; configExists = true; render();
+    })
+    .subscribe();
+  // after the phone wakes up, catch up on anything missed
+  document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && started) loadAll(); });
+}
+
+/* ---------- writes ---------- */
+let cfgTimer = null, cfgWriting = false, cfgDirty = false;
+function saveConfig(){ cfgDirty = true; clearTimeout(cfgTimer); cfgTimer = setTimeout(flushConfig, 500); }
+async function flushConfig(){
+  if(cfgWriting || !cfgDirty) return;
+  cfgWriting = true; cfgDirty = false;
+  try{ await track(sb.from("config").upsert({id:1, data:config, updated_at:new Date().toISOString()})); configExists = true; }catch(e){}
+  cfgWriting = false;
+  if(cfgDirty) flushConfig();
+}
+const nextNum = room => boxes.filter(b=>b.room===room).reduce((m,b)=>Math.max(m,b.num),0)+1;
+
+async function insertBox(b){
+  // two people adding a box to the same room at once: take the next free number
+  for(let attempt=0; attempt<5; attempt++){
+    const { data, error } = await sb.from("scatole").insert(b).select().single();
+    if(!error) return data;
+    if(error.code==="23505"){ b.num = Math.max(b.num, nextNum(b.room)) + 1; continue; }
+    throw error;
+  }
+  throw new Error("Numero scatola occupato, riprova.");
+}
+async function updateBox(id, fields){
+  await track(sb.from("scatole").update(fields).eq("id",id));
+}
+
+/* ---------- photos ---------- */
+const urlCache = {}, urlPending = new Set();
+async function ensureUrls(){
+  const all = [...document.querySelectorAll("img[data-path]")];
+  all.forEach(img=>{ const u = urlCache[img.dataset.path]; if(u && img.src!==u) img.src = u; });
+  const missing = [...new Set(all.map(i=>i.dataset.path))].filter(p=>!urlCache[p] && !urlPending.has(p));
+  if(!missing.length) return;
+  missing.forEach(p=>urlPending.add(p));
+  const { data } = await sb.storage.from(BUCKET).createSignedUrls(missing, 60*60*12);
+  missing.forEach(p=>urlPending.delete(p));
+  (data||[]).forEach(r=>{ if(r.signedUrl) urlCache[r.path] = r.signedUrl; });
+  document.querySelectorAll("img[data-path]").forEach(img=>{ const u = urlCache[img.dataset.path]; if(u && img.src!==u) img.src = u; });
+}
+async function shrink(file){
+  try{
+    const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=URL.createObjectURL(file); });
+    const k = Math.min(1, 1600/Math.max(img.naturalWidth,img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(img.src);
+    return (await new Promise(r=>c.toBlob(r,"image/jpeg",0.82))) || file;
+  }catch(e){ return file; }
+}
+async function uploadPhotos(boxId, files, onEach){
+  for(const f of files){
+    const path = `${boxId}/${uuid()}.jpg`;
+    const { error } = await sb.storage.from(BUCKET).upload(path, await shrink(f), {contentType:"image/jpeg", upsert:false});
+    if(error) throw new Error("Una foto non è stata caricata. Controlla la connessione e riprova.");
+    onEach(path);
+  }
+}
+function removePhotos(paths){ if(paths.length) sb.storage.from(BUCKET).remove(paths).catch(()=>{}); }
+function saveFile(blob, filename){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---------- helpers ---------- */
+const roomOf = code => config.rooms.find(r=>r.code===code) || {code, name:code};
+const boxCode = b => b.room + "-" + String(b.num).padStart(2,"0");
+
+/* ---------- tabs ---------- */
+let tab = "scatole";
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
+  tab = b.dataset.tab;
+  document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected", x===b));
+  ["scatole","checklist","zaino"].forEach(t=>$("#tab-"+t).hidden = t!==tab);
+  $("#fab").hidden = tab!=="scatole";
+  render();
+}));
+
+/* ---------- boxes list ---------- */
+let roomFilter = null, justAdded = null, uploadingFor = null;
+$("#q").addEventListener("input", renderBoxes);
+function highlight(text, q){
+  const t = esc(text); if(!q) return t;
+  const i = norm(text).indexOf(norm(q)); if(i<0) return t;
+  return esc(text.slice(0,i)) + "<mark>" + esc(text.slice(i,i+q.length)) + "</mark>" + esc(text.slice(i+q.length));
+}
+function renderBoxes(){
+  const q = $("#q").value.trim(), nq = norm(q), qc = nq.replace(/[^a-z0-9]/g,"");
+  const used = config.rooms.filter(r=>boxes.some(b=>b.room===r.code));
+  const total = boxes.length, arrived = boxes.filter(b=>b.status==="arrivata"||b.status==="svuotata").length;
+  $("#stats").innerHTML = total ? (
+    `<span class="chip">${total} scatole, ${arrived} arrivate</span>` +
+    used.map(r=>`<button class="chip" data-rf="${r.code}" aria-pressed="${roomFilter===r.code}"><b>${r.code}</b>${esc(r.name)} ${boxes.filter(b=>b.room===r.code).length}</button>`).join("")
+  ) : "";
+  $("#stats").querySelectorAll("[data-rf]").forEach(b=>b.onclick=()=>{ roomFilter = roomFilter===b.dataset.rf?null:b.dataset.rf; renderBoxes(); });
+  $("#dlList").hidden = !total;
+
+  let list = boxes.slice();
+  if(roomFilter) list = list.filter(b=>b.room===roomFilter);
+  if(q){
+    list = list.filter(b=>{
+      const c = boxCode(b).toLowerCase().replace("-",""), cShort = (b.room+String(b.num)).toLowerCase();
+      return norm(b.contents||"").includes(nq) || norm(roomOf(b.room).name).includes(nq) || c===qc || cShort===qc || (qc.length>=2 && c.startsWith(qc));
+    });
+  }
+  list.sort((a,b)=> ((b.priority?1:0)-(a.priority?1:0)) || a.room.localeCompare(b.room) || a.num-b.num);
+
+  const el = $("#boxes");
+  if(!boxes.length){
+    el.innerHTML = `<div class="empty"><div class="tag">CU-01</div><p>Nessuna scatola ancora. Tocca <b>+ Nuova scatola</b>, scegli la stanza e scrivi il codice sul cartone.</p></div>`;
+    return;
+  }
+  if(!list.length){
+    el.innerHTML = `<div class="empty"><p>Nessuna scatola contiene “${esc(q)}”. Prova con un'altra parola, oppure guarda le foto delle scatole senza descrizione.</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(b=>{
+    const ph = b.photos||[];
+    return `
+    <article class="box st-${b.status} ${b.id===justAdded?"new":""}">
+      <div class="tag">${boxCode(b)}<small>${esc(roomOf(b.room).name)}</small></div>
+      <div>
+        <p class="contents">${b.contents ? highlight(b.contents,q) : "<i>Nessuna descrizione</i>"}</p>
+        ${(b.fragile||b.priority)?`<div class="flags">${b.fragile?'<span class="flag f">Fragile</span>':""}${b.priority?'<span class="flag p">Apri subito</span>':""}</div>`:""}
+        ${ph.length||uploadingFor===b.id?`<div class="photos">${ph.map((p,i)=>`<button data-view="${b.id}" data-i="${i}" aria-label="Foto ${i+1} di ${boxCode(b)}"><img data-path="${esc(p)}" alt=""></button>`).join("")}${uploadingFor===b.id?'<div class="ph-wait">Carico…</div>':""}</div>`:""}
+        <div class="boxrow">
+          <select data-st="${b.id}" aria-label="Stato della scatola ${boxCode(b)}">
+            ${STATUS.map(([v,l])=>`<option value="${v}" ${b.status===v?"selected":""}>${l}</option>`).join("")}
+          </select>
+          <button class="btn ghost small" data-ph="${b.id}">Foto</button>
+          <button class="btn ghost small" data-ed="${b.id}">Modifica</button>
+        </div>
+      </div>
+    </article>`;}).join("");
+  justAdded = null;
+  el.querySelectorAll("[data-st]").forEach(s=>s.onchange=()=>{ const b = boxes.find(x=>x.id===s.dataset.st); b.status = s.value; updateBox(b.id,{status:b.status}).catch(()=>{}); renderBoxes(); });
+  el.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>openBox(b.dataset.ed));
+  el.querySelectorAll("[data-ph]").forEach(b=>b.onclick=()=>{ cardTarget = b.dataset.ph; $("#cardFile").click(); });
+  el.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>openPhoto(b.dataset.view, +b.dataset.i));
+  ensureUrls();
+}
+
+/* quick photo from the card */
+let cardTarget = null;
+$("#cardFile").addEventListener("change", async e=>{
+  const files = [...e.target.files]; e.target.value = "";
+  if(!files.length || !cardTarget) return;
+  const id = cardTarget; uploadingFor = id; renderBoxes();
+  const added = [];
+  try{ await uploadPhotos(id, files, p=>added.push(p)); }catch(err){ alert(err.message); }
+  uploadingFor = null;
+  const b = boxes.find(x=>x.id===id);
+  if(b && added.length){
+    // re-read to avoid overwriting photos someone else added meanwhile
+    const { data } = await sb.from("scatole").select("photos").eq("id",id).maybeSingle();
+    b.photos = [...((data && data.photos) || b.photos || []), ...added];
+    try{ await updateBox(id,{photos:b.photos}); }catch(e){}
+  } else if(!b) removePhotos(added);
+  renderBoxes();
+});
+
+/* ---------- photo viewer ---------- */
+const lb = $("#lb"); let lbBox = null, lbIdx = 0;
+function openPhoto(boxId, i){
+  const b = boxes.find(x=>x.id===boxId); if(!b) return;
+  lbBox = b; lbIdx = i;
+  const img = $("#lbImg"); img.dataset.path = b.photos[i]; img.removeAttribute("src");
+  img.alt = `Foto ${i+1} della scatola ${boxCode(b)}`;
+  $("#lbCap").textContent = `${boxCode(b)}, foto ${i+1} di ${b.photos.length}`;
+  if(!lb.open) lb.showModal();
+  ensureUrls();
+}
+$("#lbClose").onclick = ()=>lb.close();
+lb.addEventListener("close", ()=>{ delete $("#lbImg").dataset.path; });
+$("#lbImg").onclick = ()=>{ if(lbBox && lbBox.photos.length>1) openPhoto(lbBox.id, (lbIdx+1)%lbBox.photos.length); };
+$("#lbDl").onclick = async ()=>{
+  const { data, error } = await sb.storage.from(BUCKET).download(lbBox.photos[lbIdx]);
+  if(error){ alert("Download non riuscito. Riprova."); return; }
+  saveFile(data, `${boxCode(lbBox)}-foto-${lbIdx+1}.jpg`);
+};
+
+/* ---------- download list ---------- */
+$("#dlList").onclick = ()=>{
+  const cell = v => '"' + String(v).replace(/"/g,'""') + '"';
+  const rows = [["Codice","Stanza","Contenuto","Fragile","Apri subito","Stato","Foto"]];
+  boxes.slice().sort((a,b)=>a.room.localeCompare(b.room)||a.num-b.num).forEach(b=>rows.push([
+    boxCode(b), roomOf(b.room).name, b.contents||"", b.fragile?"sì":"", b.priority?"sì":"",
+    (STATUS.find(s=>s[0]===b.status)||["",""])[1], (b.photos||[]).length
+  ]));
+  saveFile(new Blob(["\ufeff" + rows.map(r=>r.map(cell).join(";")).join("\r\n")],{type:"text/csv"}), "scatole-trasloco.csv");
+};
+
+/* ---------- box dialog ---------- */
+const dlg = $("#dlg");
+let editing = null, pickRoom = "CU", draftPhotos = [], startPhotos = [], draftId = null, dlgUploading = 0;
+function renderRoomPick(){
+  $("#roomPick").innerHTML = config.rooms.map(r=>`<button type="button" class="chip" data-room="${r.code}" aria-pressed="${pickRoom===r.code}"><b>${r.code}</b>${esc(r.name)}</button>`).join("");
+  $("#roomPick").querySelectorAll("[data-room]").forEach(b=>b.onclick=()=>{ pickRoom=b.dataset.room; renderRoomPick(); updatePreview(); });
+}
+function updatePreview(){
+  const b = editing && boxes.find(x=>x.id===editing);
+  const num = b && b.room===pickRoom ? b.num : nextNum(pickRoom);
+  $("#pvTag").textContent = pickRoom + "-" + String(num).padStart(2,"0");
+}
+function renderDlgPhotos(){
+  $("#dlgPhotos").innerHTML = draftPhotos.map((p,i)=>`<div class="ph-edit"><button type="button"><img data-path="${esc(p)}" alt="Foto ${i+1}"></button><button type="button" class="x" data-rm="${i}" aria-label="Elimina foto ${i+1}">×</button></div>`).join("")
+    + (dlgUploading?'<div class="ph-wait">Carico…</div>':"");
+  $("#dlgPhotos").querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ draftPhotos.splice(+b.dataset.rm,1); renderDlgPhotos(); });
+  $("#saveBtn").disabled = dlgUploading>0;
+  ensureUrls();
+}
+function openBox(id){
+  editing = id || null;
+  const b = id ? boxes.find(x=>x.id===id) : null;
+  draftId = b ? b.id : uuid();
+  pickRoom = b ? b.room : (roomFilter || pickRoom);
+  $("#dlgTitle").textContent = b ? "Modifica scatola" : "Nuova scatola";
+  $("#fContents").value = b ? (b.contents||"") : "";
+  $("#fFragile").checked = b ? !!b.fragile : false;
+  $("#fPriority").checked = b ? !!b.priority : false;
+  $("#delBtn").hidden = !b;
+  $("#saveBtn").textContent = b ? "Salva modifiche" : "Salva scatola";
+  $("#photoErr").textContent = "";
+  startPhotos = b ? (b.photos||[]).slice() : [];
+  draftPhotos = startPhotos.slice();
+  renderRoomPick(); updatePreview(); renderDlgPhotos();
+  dlg.showModal();
+}
+$("#dlgFile").addEventListener("change", async e=>{
+  const files = [...e.target.files]; e.target.value = "";
+  if(!files.length) return;
+  $("#photoErr").textContent = "";
+  dlgUploading++; renderDlgPhotos();
+  try{ await uploadPhotos(draftId, files, p=>{ draftPhotos.push(p); renderDlgPhotos(); }); }
+  catch(err){ $("#photoErr").textContent = err.message; }
+  dlgUploading--; renderDlgPhotos();
+});
+$("#fab").onclick = ()=>openBox(null);
+$("#cancelBtn").onclick = ()=>{ removePhotos(draftPhotos.filter(p=>!startPhotos.includes(p))); dlg.close(); };
+$("#delBtn").onclick = async ()=>{
+  const b = boxes.find(x=>x.id===editing);
+  if(!confirm(`Eliminare la scatola ${boxCode(b)} e le sue foto?`)) return;
+  const id = editing;
+  removePhotos([...new Set([...(b.photos||[]), ...draftPhotos])]);
+  boxes = boxes.filter(x=>x.id!==id); dlg.close(); render();
+  try{ await track(sb.from("scatole").delete().eq("id",id)); }catch(e){}
+};
+$("#boxform").addEventListener("submit", async e=>{
+  e.preventDefault();
+  if(dlgUploading) return;
+  const fields = {contents:$("#fContents").value.trim(), fragile:$("#fFragile").checked, priority:$("#fPriority").checked, photos:draftPhotos.slice()};
+  $("#saveBtn").disabled = true;
+  try{
+    if(editing){
+      const b = boxes.find(x=>x.id===editing);
+      if(b.room!==pickRoom){ fields.room = pickRoom; fields.num = nextNum(pickRoom); }
+      await updateBox(editing, fields);
+      Object.assign(b, fields);
+      removePhotos(startPhotos.filter(p=>!draftPhotos.includes(p)));
+    } else {
+      const row = await track(insertBox({id:draftId, room:pickRoom, num:nextNum(pickRoom), status:"prep", ...fields}));
+      if(!boxes.some(x=>x.id===row.id)) boxes.push(row);
+      justAdded = row.id;
+      if(row.num !== +$("#pvTag").textContent.split("-")[1]) alert(`Qualcun altro ha appena usato quel numero: scrivi ${boxCode(row)} sulla scatola.`);
+    }
+    dlg.close(); render();
+  }catch(err){
+    $("#photoErr").textContent = "Scatola non salvata: controlla la connessione e riprova.";
+  }
+  $("#saveBtn").disabled = false;
+});
+$("#addRoomBtn").onclick = ()=>{
+  const name = (prompt("Nome della stanza (es. Cantina, Terrazzo)")||"").trim();
+  if(!name) return;
+  const code = (prompt("Codice di due lettere da scrivere sulle scatole", name.slice(0,2).toUpperCase())||"").trim().toUpperCase().replace(/[^A-Z]/g,"").slice(0,3);
+  if(code.length<2){ alert("Il codice deve avere almeno due lettere."); return; }
+  if(config.rooms.some(r=>r.code===code)){ alert(`Il codice ${code} è già usato da ${roomOf(code).name}. Scegline un altro.`); return; }
+  config.rooms.push({code,name}); saveConfig(); pickRoom = code; renderRoomPick(); updatePreview();
+};
+
+/* ---------- checklists ---------- */
+function checkItem(it, kind){
+  return `<li class="${it.done?"done":""}"><label><input type="checkbox" data-k="${kind}" data-id="${it.id}" ${it.done?"checked":""}><span>${esc(it.text)}</span></label><button class="x" data-del="${kind}" data-id="${it.id}" aria-label="Rimuovi ${esc(it.text)}">×</button></li>`;
+}
+function wireList(root){
+  root.querySelectorAll("input[data-k]").forEach(c=>c.onchange=()=>{ config[c.dataset.k].find(x=>x.id===c.dataset.id).done = c.checked; saveConfig(); render(); });
+  root.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ config[b.dataset.del] = config[b.dataset.del].filter(x=>x.id!==b.dataset.id); saveConfig(); render(); });
+  root.querySelectorAll("form[data-add]").forEach(f=>f.onsubmit=e=>{
+    e.preventDefault(); const t = f.querySelector("input").value.trim(); if(!t) return;
+    const kind = f.dataset.add;
+    config[kind].push(kind==="checks"?{id:shortId(),phase:f.dataset.phase,text:t,done:false}:{id:shortId(),text:t,done:false});
+    saveConfig(); render();
+  });
+}
+function renderChecklist(){
+  const el = $("#tab-checklist");
+  el.innerHTML = PHASES.map(p=>{
+    const items = config.checks.filter(c=>c.phase===p.id), done = items.filter(c=>c.done).length;
+    return `<div class="phase"><h2>${p.name}<span>${done} di ${items.length}</span></h2>
+      ${items.length?`<ul class="chk">${items.map(i=>checkItem(i,"checks")).join("")}</ul>`:""}
+      <form class="addline" data-add="checks" data-phase="${p.id}"><input placeholder="Aggiungi una voce" aria-label="Aggiungi una voce a ${p.name}"><button class="btn small">Aggiungi</button></form></div>`;
+  }).join("");
+  wireList(el);
+}
+function renderKit(){
+  const el = $("#tab-zaino"), done = config.kit.filter(k=>k.done).length;
+  el.innerHTML = `<div class="phase"><h2>Da tenere con te, non negli scatoloni<span>${done} di ${config.kit.length}</span></h2>
+    <ul class="chk">${config.kit.map(i=>checkItem(i,"kit")).join("")}</ul>
+    <form class="addline" data-add="kit"><input placeholder="Aggiungi una cosa allo zaino" aria-label="Aggiungi una cosa allo zaino"><button class="btn small">Aggiungi</button></form></div>`;
+  wireList(el);
+}
+function render(){
+  if(tab==="scatole") renderBoxes();
+  else if(tab==="checklist") renderChecklist();
+  else renderKit();
+}
+})();
+</script>
+
+</body>
+</html>
