@@ -76,5 +76,5 @@ create policy "foto solo membri" on storage.objects
   with check (bucket_id = 'foto' and public.is_member());
 
 -- >>> CAMBIA QUI con la tua email <<<
-insert into public.membri (email) values ('tua.email@esempio.it')
+insert into public.membri (email) values ('salitadambra@gmail.com')
 on conflict do nothing;
