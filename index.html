@@ -320,7 +320,7 @@ $("#loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
   $("#loginMsg").textContent = "Accesso in corso…";
   const { error } = await sb.auth.signInWithPassword({ email: $("#loginEmail").value.trim(), password: $("#loginPass").value });
-  $("#loginMsg").textContent = error ? "Email o password non corrette." : "";
+    $("#loginMsg").textContent = error ? "Errore: " + error.message : "";
 });
 $("#logout").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
 
