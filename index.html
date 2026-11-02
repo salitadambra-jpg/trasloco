@@ -197,7 +197,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="field">
       <span class="lbl">Foto del contenuto</span>
       <div class="photos" id="dlgPhotos"></div>
-      <label class="btn ghost small" style="display:inline-block">+ Aggiungi foto<input type="file" accept="image/*" multiple id="dlgFile" hidden></label>
+      <div class="boxrow">
+        <label class="btn small">📷 Scatta foto<input type="file" accept="image/*" capture="environment" id="dlgCam" hidden></label>
+        <label class="btn ghost small">Dalla galleria<input type="file" accept="image/*" multiple id="dlgFile" hidden></label>
+      </div>
       <p class="ai" id="aiMsg">Dopo la foto l'elenco degli oggetti si compila da solo: controllalo prima di salvare.</p>
     </div>
     <div class="field toggles">
@@ -222,7 +225,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div><button class="btn ghost" id="lbDl">Scarica foto</button><button class="btn" id="lbClose">Chiudi</button></div>
   </div>
 </dialog>
-<input type="file" accept="image/*" multiple id="cardFile" hidden>
+<input type="file" accept="image/*" capture="environment" id="cardFile" hidden>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
@@ -528,7 +531,7 @@ function renderBoxes(){
           <select data-st="${b.id}" aria-label="Stato della scatola ${boxCode(b)}">
             ${STATUS.map(([v,l])=>`<option value="${v}" ${b.status===v?"selected":""}>${l}</option>`).join("")}
           </select>
-          <button class="btn ghost small" data-ph="${b.id}">Foto</button>
+          <button class="btn ghost small" data-ph="${b.id}">📷 Foto</button>
           <button class="btn ghost small" data-ed="${b.id}">Modifica</button>
         </div>
       </div>
@@ -633,7 +636,7 @@ function openBox(id){
   renderRoomPick(); updatePreview(); renderDlgPhotos();
   dlg.showModal();
 }
-$("#dlgFile").addEventListener("change", async e=>{
+async function onDlgFiles(e){
   const files = [...e.target.files]; e.target.value = "";
   if(!files.length) return;
   $("#photoErr").textContent = "";
@@ -651,7 +654,9 @@ $("#dlgFile").addEventListener("change", async e=>{
     $("#aiMsg").textContent = "Elenco aggiornato dalla foto: controllalo e correggilo se serve.";
   }
   dlgUploading--; renderDlgPhotos();
-});
+}
+$("#dlgFile").addEventListener("change", onDlgFiles);
+$("#dlgCam").addEventListener("change", onDlgFiles);
 $("#fab").onclick = ()=>openBox(null);
 $("#cancelBtn").onclick = ()=>{ removePhotos(draftPhotos.filter(p=>!startPhotos.includes(p))); dlg.close(); };
 $("#delBtn").onclick = async ()=>{
